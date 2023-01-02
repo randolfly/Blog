@@ -1,0 +1,20 @@
+﻿@inherits LayoutComponentBase
+
+<MApp>
+    <MAppBar Flat App Color="white" Class="m-bar--underline" ClippedRight="true">
+        <span>Masa.Framework</span>
+        <MSpacer></MSpacer>
+        <MButton Text>
+            <a href="https://blazor.masastack.com/">About</a>
+        </MButton>
+    </MAppBar>
+    <Nagigation IsRight="false"></Nagigation>
+    <MMain>
+        <MContainer Fluid>
+            <CascadingValue Value="this">
+                @Body
+            </CascadingValue>
+        </MContainer>
+    </MMain>
+    <Nagigation IsRight="true"></Nagigation>
+</MApp>

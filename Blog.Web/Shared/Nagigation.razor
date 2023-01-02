@@ -1,0 +1,85 @@
+﻿@inject NavigationManager NavigationManager
+
+<MNavigationDrawer App Right="@IsRight" Clipped="@IsRight">
+    <Masa.Blazor.Presets.PSidebar @bind-Value="SelectedKey"
+                                  Dense
+                                  Color="indigo"
+                                  Items="Menus"
+                                  Title="m => m.Label"
+                                  Icon="m => m.Icon"
+                                  Key="m => m.Value"
+                                  Children="m => m.SubMenus"
+                                  TItem="Menu"
+                                  OnClick="Click">
+    </Masa.Blazor.Presets.PSidebar>
+</MNavigationDrawer>
+
+@code {
+    [Parameter]
+    public bool IsRight { get; set; } = false;
+
+    private List<Menu> Menus { get; set; }
+    private StringNumber SelectedKey { get; set; } = "/";
+
+    protected override void OnInitialized()
+    {
+        SetMenus();
+    }
+
+    private void SetMenus()
+    {
+        var menus = new List<Menu>()
+        {
+            new Menu() { Label = "index", Icon = "mdi-home", Value = "/" },
+            new Menu()
+            {
+                Label = "count",
+                Icon = "mdi-account-circle",
+                Value = "counter",
+                SubMenus = new List<Menu>()
+                {
+                    new()
+                    {
+                        Label = "pages",
+                        SubMenus = new List<Menu>()
+                        {
+                            new() { Label = "fetchdata", Icon = "mdi-account-multiple-outline", Value = "fetchdata" },
+                            new() { Label = "testpost", Icon = "mdi-cog-outline", Value = "testpost" },
+                            new() { Label = "count", Icon = "mdi-cog-outline", Value = "counter" },
+                        }
+                    },
+                    new()
+                    {
+                        Label = "Actions",
+                        SubMenus = new List<Menu>()
+                        {
+                            new() { Label = "Create", Icon = "mdi-plus-outline", Value = "Create" },
+                            new() { Label = "Read", Icon = "mdi-file-outline", Value = "Read" },
+                            new() { Label = "Update", Icon = "mdi-update", Value = "Update" },
+                            new() { Label = "Delete", Icon = "mdi-delete", Value = "Delete" },
+                        }
+                    },
+                }
+            },
+        };
+
+        Menus = menus;
+    }
+
+    void Click(Menu item)
+    {
+        NavigationManager.NavigateTo(item.Value);
+    }
+
+    class Menu
+    {
+        public string Label { get; set; }
+
+        public string Value { get; set; }
+
+        public string Icon { get; set; }
+
+        public List<Menu> SubMenus { get; set; }
+    }
+
+}
