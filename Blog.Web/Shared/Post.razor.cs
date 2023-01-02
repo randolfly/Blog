@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using MathJaxBlazor;
 using Console = System.Console;
 
 namespace Blog.Web.Shared;
@@ -11,17 +12,27 @@ public partial class Post
     private RenderFragment Body { get; set; }
     private ComponentRenderItem? ComponentRenderTree { get; set; }
 
-    [Inject] public HttpClient HttpClient { get; set; }
+    private TexInputSettings TexSettings { get; set; } = new TexInputSettings();
 
     protected override async Task OnInitializedAsync()
     {
+        // TexSettings.InlineMath.Add(new string[] { "$", "$" });
+
         await RenderComponent();
     }
 
     private RenderFragment CreatePost(ComponentRenderItem renderItem) => builder =>
     {
-        builder.OpenElement(renderItem.RenderElement.SequenceId, renderItem.RenderElement.Element);
+        // leaf text node
+        if (renderItem.RenderElement.Element == "#text")
+        {
+            builder.AddContent(renderItem.RenderMarkupContent.SequenceId,
+                renderItem.RenderMarkupContent.MarkupContent);
+            return;
+        }
 
+
+        builder.OpenElement(renderItem.RenderElement.SequenceId, renderItem.RenderElement.Element);
         // NOTE the result here shows that the string-object key map is not valid, it requires cast
         // just switch back to Dictionary and use AddAttribute
         if (renderItem.RenderAttributes != null)
@@ -39,13 +50,6 @@ public partial class Post
             }
         }
 
-        // render the text content node last
-        if (renderItem.RenderMarkupContent != null)
-        {
-            builder.AddMarkupContent(renderItem.RenderMarkupContent.SequenceId,
-                renderItem.RenderMarkupContent.MarkupContent);
-        }
-
         builder.CloseElement();
 
         // self defined component
@@ -54,10 +58,10 @@ public partial class Post
         // builder.CloseComponent();
     };
 
-    //parse-markdown-to-dom?markdownFilePath=E%3A%5CCode%5CC%23%5CTool%5CBlazorBlog%5CBlazorBlog.Server%5Cassets%5Chello.md
+    // E:\Code\C#\Tool\BlazorBlog\BlazorBlog.Server\assets\傅里叶变换.md
     private async Task RenderComponent()
     {
-        var mdFilePath = @"E:\Code\C#\Tool\BlazorBlog\BlazorBlog.Server\assets\傅里叶变换.md";
+        var mdFilePath = @"E:\Code\C#\Tool\Blog\assets\单索并联机构动力学模型.md";
         var uri = System.Web.HttpUtility.UrlEncode(mdFilePath);
         var renderItem =
             await HttpClient.GetFromJsonAsync<ComponentRenderItem>($"parse-markdown-to-dom?markdownFilePath={uri}");
