@@ -16,3 +16,11 @@
   right: 0.75rem;
   top: 0.5rem;
 }
+
+/*kaTeX config*/
+
+/*override accent color provided by framework, the .mord indicated that 
+this is a kaTeX block*/
+.m-application .mord.accent {
+  background-color: inherit !important;
+}

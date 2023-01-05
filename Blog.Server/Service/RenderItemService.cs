@@ -1,5 +1,6 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Html.Parser;
 using Markdig;
 using Blog.Shared.Render;
 using Markdig.Extensions.EmphasisExtras;
@@ -18,7 +19,7 @@ public class RenderItemService : IRenderItemService
     {
         // convert markdown to html
         var html = ParseMarkdownToHtml(markdown);
-
+        
         var config = Configuration.Default;
         //Create a new context for evaluating webpages with the given config
         var context = BrowsingContext.New(config);
@@ -37,7 +38,7 @@ public class RenderItemService : IRenderItemService
         var pipeline = new MarkdownPipelineBuilder()
             .UseDefinitionLists()
             .UseFigures()
-            .UseMathematics()
+            // .UseMathematics()
             .UseEmphasisExtras(options: EmphasisExtraOptions.Marked)
             .UseAutoLinks()
             .UseFootnotes()

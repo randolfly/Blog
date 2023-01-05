@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using MathJaxBlazor;
+using Microsoft.JSInterop;
 using Console = System.Console;
 
 namespace Blog.Web.Shared;
@@ -12,13 +12,11 @@ public partial class Post
     private RenderFragment Body { get; set; }
     private ComponentRenderItem? ComponentRenderTree { get; set; }
 
-    private TexInputSettings TexSettings { get; set; } = new TexInputSettings();
-
     protected override async Task OnInitializedAsync()
     {
-        // TexSettings.InlineMath.Add(new string[] { "$", "$" });
-
         await RenderComponent();
+        // TODO need to be separate to a single js file
+        await JS.InvokeVoidAsync("renderMath");
     }
 
     private RenderFragment CreatePost(ComponentRenderItem renderItem) => builder =>
@@ -61,7 +59,7 @@ public partial class Post
     // E:\Code\C#\Tool\BlazorBlog\BlazorBlog.Server\assets\傅里叶变换.md
     private async Task RenderComponent()
     {
-        var mdFilePath = @"E:\Code\C#\Tool\Blog\assets\单索并联机构动力学模型.md";
+        var mdFilePath = @"E:\Code\C#\Tool\BlazorBlog\BlazorBlog.Server\assets\傅里叶变换.md";
         var uri = System.Web.HttpUtility.UrlEncode(mdFilePath);
         var renderItem =
             await HttpClient.GetFromJsonAsync<ComponentRenderItem>($"parse-markdown-to-dom?markdownFilePath={uri}");

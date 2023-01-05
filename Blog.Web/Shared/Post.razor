@@ -1,7 +1,5 @@
-@using MathJaxBlazor
-@inherits MathJaxContentComponent
+@inherits ComponentBase
 @inject HttpClient HttpClient
-<MathJaxSettings Tex="@TexSettings"/>
+@inject IJSRuntime JS
 
-<Equation Value="\frac{d}{dx}\left( \int_{0}^{x} f(u)\,du\right)=f(x)" />
 @Body
