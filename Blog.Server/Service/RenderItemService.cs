@@ -2,6 +2,7 @@
 using AngleSharp.Dom;
 using Markdig;
 using Blog.Shared.Render;
+using Markdig.Extensions.EmphasisExtras;
 using CollectionExtensions = AngleSharp.Dom.CollectionExtensions;
 
 namespace Blog.Server.Service;
@@ -34,22 +35,16 @@ public class RenderItemService : IRenderItemService
     {
         // convert markdown to html
         var pipeline = new MarkdownPipelineBuilder()
-            // .UseAbbreviations()
-            // .UseAutoIdentifiers()
-            // .UseCitations()
-            // .UseCustomContainers()
             .UseDefinitionLists()
             .UseFigures()
-            // .UseFooters()
+            .UseMathematics()
+            .UseEmphasisExtras(options: EmphasisExtraOptions.Marked)
+            .UseAutoLinks()
             .UseFootnotes()
+            .UseListExtras()
             .UseGridTables()
             .UseMediaLinks()
-            // .UsePipeTables()
-            // .UseListExtras()
             .UseTaskLists()
-            // .UseDiagrams()
-            // .UseAutoLinks()
-            // .UseGenericAttributes()
             .UseYamlFrontMatter()
             // .UseBootstrap()
             .Build();
@@ -57,46 +52,37 @@ public class RenderItemService : IRenderItemService
         return html;
     }
 
-    private ComponentRenderItem ParseDom(IElement htmlNode, int sequenceId = 0)
+    private ComponentRenderItem ParseDom(INode htmlNode, int sequenceId = 0)
     {
+        var componentNode = new ComponentRenderItem();
+        // leaf node
+        if (htmlNode.NodeType == NodeType.Text)
+        {
+            // text node name: #text
+            componentNode.RenderElement = new RenderElement(sequenceId++, htmlNode.NodeName.ToLower());
+            componentNode.RenderMarkupContent = new RenderMarkupContent(sequenceId++, htmlNode.TextContent);
+
+            return componentNode;
+        }
+        // element node
+
         // attribute pairs
         List<KeyValuePair<string, object>> keyValuePairs = new();
 
-        foreach (var attribute in htmlNode.Attributes)
+        foreach (var attribute in ((IElement)htmlNode).Attributes)
         {
             keyValuePairs.Add(new KeyValuePair<string, object>(attribute.Name, attribute.Value));
         }
 
-        // text content
-        var hasTextContent = htmlNode.GetNodes<INode>(false)
-            .Any(node => node.NodeName == "#text" && node.TextContent != "\n");
-        var markupContent = hasTextContent ? htmlNode.TextContent : null;
+        // child elements/text node
+        var childNodes = htmlNode.ChildNodes
+            .Where(node => node.NodeType != NodeType.Text || node.TextContent != "\n")
+            .ToList();
 
-        var componentNode = new ComponentRenderItem
-        {
-            RenderElement = new RenderElement(sequenceId++, htmlNode.NodeName.ToLower()),
-            RenderMarkupContent = new RenderMarkupContent(sequenceId++, markupContent),
-            RenderAttributes = new RenderAttributes(sequenceId++, keyValuePairs)
-        };
+        componentNode.RenderElement = new RenderElement(sequenceId++, htmlNode.NodeName.ToLower());
+        componentNode.RenderAttributes = new RenderAttributes(sequenceId++, keyValuePairs);
 
-        // test self-define rule
-        // NOTE the html parer doesn't recognize the button node, so need to add self-defined rules in parser
-        if (htmlNode.NodeName.ToLower() == "button")
-        {
-            componentNode.RenderElement.Element = "Button";
-        }
-
-        if (htmlNode.NodeName.ToLower() == "img")
-        {
-            componentNode.RenderElement.Element = "ImageTest";
-            componentNode.RenderAttributes.Attributes = new List<KeyValuePair<string, object>>
-            {
-                new("Url", "https://www.blazor.zone/_content/BootstrapBlazor.Shared/images/bird.jpeg")
-            };
-            // Url="_content/BootstrapBlazor.Shared/images/bird.jpeg" FitMode="ObjectFitMode.Fill"
-        }
-
-        foreach (var childElement in htmlNode.Children)
+        foreach (var childElement in childNodes)
         {
             var childComponentItem = ParseDom(childElement);
             componentNode.ContentItems.Add(childComponentItem);
